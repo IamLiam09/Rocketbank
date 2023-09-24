@@ -16,38 +16,53 @@ const resolvers = {
 			{ registerInput: { username, email, password, phonenumber } }
 		) {
 			// See if the old user exists with email attempting to register
-			const oldUser = await User.findOne({ email });
-			if (oldUser) {
-				throw new ApolloError(
-					`A user is already registered with the email` + " " + email,
-					`USER_ALREADY_EXISTS`
+			// see if the phonenumber has been used
+			try {
+				const oldUser = await User.findOne({ email });
+				const usedNumber = await User.findOne({ phonenumber });
+				// Hash the password
+				const hashedPassword = await bcrypt.hash(password, 10);
+
+				// Create a new user in the database
+				const user = new User({
+					username,
+					email: email.toLowerCase(),
+					password: hashedPassword,
+					phonenumber,
+				});
+
+				// Generate a JWT token
+				const token = jwt.sign(
+					{ userId: user._id, email },
+					process.env.JWT_SECRET,
+					{
+						expiresIn: "1h",
+					}
 				);
-			}
+				user.token = token;
+				// save the user
+				await user.save();
 
-			// Hash the password
-			const hashedPassword = await bcrypt.hash(password, 10);
-
-			// Create a new user in the database
-			const user = new User({
-				username,
-				email: email.toLowerCase(),
-				password: hashedPassword,
-				phonenumber,
-			});
-
-			// Generate a JWT token
-			const token = jwt.sign(
-				{ userId: user._id, email },
-				process.env.JWT_SECRET,
-				{
-					expiresIn: "1h",
+				// Attempt to insert the new user
+				// Registration successful
+				return { phonenumber: user.phonenumber };
+			} catch (error) {
+				if (
+					error.code === 11000 &&
+					error.keyPattern &&
+					error.keyPattern.phonenumber === 1
+				) {
+					// Phone number already exists, return an error message
+					throw new ApolloError(
+						`Account has already been created with these credentials`
+					);
+				} else {
+					// Handle other errors
+					throw new ApolloError(
+						`Account has already been created with these credentials`
+					);
 				}
-			);
-			user.token = token;
-			// save the user
-			await user.save();
-
-			return { success: true, message: "User created successfully" };
+			}
 		},
 		async loginUser(_, { loginInput: { email, password } }) {
 			// Find the user by email
