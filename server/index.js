@@ -9,6 +9,9 @@ const connectDB = require("./config/db.js");
 const typeDefs = require("./schema/schema");
 const resolvers = require("./resolvers/users");
 const User = require("./models/User");
+// Import the seeding script
+const seedDatabase = require("./utlis/seed");
+
 // running the port from env or 5000 port
 const port = process.env.PORT || 5000;
 const app = express();
@@ -35,7 +38,7 @@ async function startApolloServer() {
 			return { user: req.user };
 		},
 	});
-	await server.start()
+	await server.start();
 	//   app.use(
 	// 	  "/graphql",
 	// 	  graphqlHTTP({
@@ -44,6 +47,8 @@ async function startApolloServer() {
 	// 	  })
 	//   );
 	server.applyMiddleware({ app });
+	// Run the seeding script
+	seedDatabase();
 	app.listen(port, console.log(`server is running on ${port}`));
 }
-startApolloServer()
+startApolloServer();

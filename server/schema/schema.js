@@ -11,6 +11,7 @@ const typeDefs = gql`
 	}
 	type Query {
 		user(id: ID!): User
+		getUsers: [User]
 	}
 	input RegisterInput {
 		username: String!
@@ -22,9 +23,25 @@ const typeDefs = gql`
 		email: String!
 		password: String!
 	}
+	input TransferInput{
+		sourcePhoneNumber: String!,
+		destinationPhoneNumber: String!
+		amount: Float!
+	}
+	input DepositInput{
+		phoneNumber: String!,
+		amount: Float!
+	}
+	input WithdrawalInput{
+		phoneNumber: String!,
+		amount: Float!
+	}
 	type Mutation {
 		registerUser(registerInput: RegisterInput): User
 		loginUser(loginInput: LoginInput): User
+		transferMoney(transferInput: TransferInput): Boolean
+		depositMoney(depositInput: DepositInput): User
+		withdrawalMoney(withdrawalInput: WithdrawalInput): User
 	}
 `;
 

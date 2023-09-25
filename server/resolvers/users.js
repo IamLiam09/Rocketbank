@@ -29,6 +29,7 @@ const resolvers = {
 					email: email.toLowerCase(),
 					password: hashedPassword,
 					phonenumber,
+					balance,
 				});
 
 				// Generate a JWT token
@@ -86,6 +87,81 @@ const resolvers = {
 
 			if (!isPasswordValid) {
 				throw new ApolloError("Incorrect password or email");
+			}
+		},
+		async transferMoney(
+			_,
+			{ transferInput: { sourcePhoneNumber, destinationPhoneNumber, amount } }
+		) {
+			// Implement logic for transferring money here
+			try {
+				// Find the source and destination users by phone numbers
+				const sourceUser = await User.findOne({
+					phonenumber: sourcePhoneNumber,
+				});
+				const destinationUser = await User.findOne({
+					phonenumber: destinationPhoneNumber,
+				});
+
+				if (!sourceUser || !destinationUser) {
+					throw new Error("Account number not found");
+				}
+
+				// Verify source user has sufficient funds, deduct from source, and add to destination
+				if (sourceUser.balance < amount) {
+					throw new Error("Insufficient funds");
+				}
+
+				// Perform the money transfer
+				sourceUser.balance -= amount;
+				destinationUser.balance += amount;
+
+				// Save the updated user data to the database
+				await sourceUser.save();
+				await destinationUser.save();
+
+				return true; // Return true to indicate a successful transfer
+				// Handle errors, including insufficient funds or invalid user IDs
+			} catch (error) {
+				throw new Error(`Error transferring money: ${error.message}`);
+			}
+		},
+		async depositMoney(_, { transferInput: { phoneNumber, amount } }) {
+			try {
+				const user = await User.findOne({ phoneNumber });
+				if (!user) {
+					throw new Error("Account number found");
+				}
+
+				user.balance += amount;
+				await user.save();
+
+				return {
+					username: user.username,
+					phoneNumber: user.phonenumber,
+					balance: user.balance,
+				};
+			} catch (error) {
+				throw new Error(`Error depositing money: ${error.message}`);
+			}
+		},
+		async withdrawalMoney(_, { withdrawInput: { phoneNumber, amount } }) {
+			try {
+				const user = await User.findOne({ phoneNumber });
+				if (!user) {
+					throw new Error("Account Number not found");
+				}
+
+				if (user.balance < amount) {
+					throw new Error("Insufficient funds");
+				}
+
+				user.balance -= amount;
+				await user.save();
+
+				return user;
+			} catch (error) {
+				throw new Error(`Error withdrawing money: ${error.message}`);
 			}
 		},
 	},
