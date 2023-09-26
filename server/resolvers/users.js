@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const { ApolloError } = require("apollo-server-express");
+const authenticateUser = require("../middleware/authenticateuser");
 
 const resolvers = {
 	Query: {
@@ -20,9 +21,15 @@ const resolvers = {
 			try {
 				const oldUser = await User.findOne({ email });
 				const usedNumber = await User.findOne({ phonenumber });
+				if (oldUser || usedNumber) {
+					// Phone number already exists, return an error message
+					throw new ApolloError(
+						`Account has already been created with these credentials`
+					);
+				}
 				// Hash the password
 				const hashedPassword = await bcrypt.hash(password, 10);
-
+				const balance = 100.0; // Define and set an initial balance
 				// Create a new user in the database
 				const user = new User({
 					username,
@@ -48,21 +55,9 @@ const resolvers = {
 				// Registration successful
 				return { phonenumber: user.phonenumber };
 			} catch (error) {
-				if (
-					error.code === 11000 &&
-					error.keyPattern &&
-					error.keyPattern.phonenumber === 1
-				) {
-					// Phone number already exists, return an error message
-					throw new ApolloError(
-						`Account has already been created with these credentials`
-					);
-				} else {
-					// Handle other errors
-					throw new ApolloError(
-						`Account has already been created with these credentials`
-					);
-				}
+				throw new ApolloError(
+					`Account has already been created with these credentials other`
+				);
 			}
 		},
 		async loginUser(_, { loginInput: { email, password } }) {
@@ -104,12 +99,12 @@ const resolvers = {
 				});
 
 				if (!sourceUser || !destinationUser) {
-					throw new Error("Account number not found");
+					throw new ApolloError("Account number not found");
 				}
 
 				// Verify source user has sufficient funds, deduct from source, and add to destination
 				if (sourceUser.balance < amount) {
-					throw new Error("Insufficient funds");
+					throw new ApolloError("Insufficient funds");
 				}
 
 				// Perform the money transfer
@@ -126,42 +121,55 @@ const resolvers = {
 				throw new Error(`Error transferring money: ${error.message}`);
 			}
 		},
-		async depositMoney(_, { transferInput: { phoneNumber, amount } }) {
+		async depositMoney(_, { depositInput: { phonenumber, amount } }, context) {
+			// Authenticate the user
+			const user = authenticateUser(context.req);
 			try {
-				const user = await User.findOne({ phoneNumber });
-				if (!user) {
-					throw new Error("Account number found");
+				const existingUser = await User.findOne({ phonenumber });
+				if (!existingUser) {
+					throw new Error("Account number not found");
 				}
 
 				user.balance += amount;
 				await user.save();
 
-				return {
-					username: user.username,
-					phoneNumber: user.phonenumber,
-					balance: user.balance,
-				};
+				return user;
 			} catch (error) {
 				throw new Error(`Error depositing money: ${error.message}`);
 			}
 		},
-		async withdrawalMoney(_, { withdrawInput: { phoneNumber, amount } }) {
+		async withdrawalMoney(
+			_,
+			{ withdrawalInput: { phonenumber, amount } },
+			context
+		) {
+			const user = authenticateUser(context.req);
+			// console.log(user)
 			try {
-				const user = await User.findOne({ phoneNumber });
-				if (!user) {
+				const existingUser = await User.findOne({ phonenumber });
+				if (!existingUser) {
 					throw new Error("Account Number not found");
 				}
 
-				if (user.balance < amount) {
+				if (existingUser.balance < amount) {
 					throw new Error("Insufficient funds");
 				}
 
-				user.balance -= amount;
-				await user.save();
+				existingUser.balance -= amount;
+				await existingUser.save();
 
-				return user;
+				return existingUser;
 			} catch (error) {
 				throw new Error(`Error withdrawing money: ${error.message}`);
+			}
+		},
+		async transactions(_, { userId }) {
+			try {
+				// Fetch transactions for the given user ID from your database
+				const userTransactions = await TransactionModel.find({ user: userId });
+				return userTransactions;
+			} catch (error) {
+				throw new Error(`Error fetching transactions: ${error.message}`);
 			}
 		},
 	},

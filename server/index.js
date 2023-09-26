@@ -22,7 +22,7 @@ app.use(async (req, res, next) => {
 	const token = req.headers.authorization || "";
 	try {
 		if (token) {
-			const user = jwt.verify(token, "your-secret-key");
+			const user = jwt.verify(token, process.env.JWT_SECRET);
 			req.user = user;
 		}
 	} catch (error) {
@@ -34,21 +34,12 @@ async function startApolloServer() {
 	const server = new ApolloServer({
 		typeDefs,
 		resolvers,
-		context: ({ req }) => {
-			return { user: req.user };
-		},
+		context: ({ req }) => ({ req }),
 	});
 	await server.start();
-	//   app.use(
-	// 	  "/graphql",
-	// 	  graphqlHTTP({
-	// 		  schema,
-	// 		  graphiql: process.env.NODE_ENV === "development",
-	// 	  })
-	//   );
 	server.applyMiddleware({ app });
 	// Run the seeding script
-	seedDatabase();
 	app.listen(port, console.log(`server is running on ${port}`));
 }
+seedDatabase();
 startApolloServer();

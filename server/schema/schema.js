@@ -13,6 +13,13 @@ const typeDefs = gql`
 		user(id: ID!): User
 		getUsers: [User]
 	}
+	type Transaction {
+		id: ID!
+		date: String!
+		amount: Float!
+		type: String!
+		user: User!
+	}
 	input RegisterInput {
 		username: String!
 		email: String!
@@ -23,17 +30,17 @@ const typeDefs = gql`
 		email: String!
 		password: String!
 	}
-	input TransferInput{
-		sourcePhoneNumber: String!,
+	input TransferInput {
+		sourcePhoneNumber: String!
 		destinationPhoneNumber: String!
 		amount: Float!
 	}
-	input DepositInput{
-		phoneNumber: String!,
+	input DepositInput {
+		phonenumber: String!
 		amount: Float!
 	}
-	input WithdrawalInput{
-		phoneNumber: String!,
+	input WithdrawalInput {
+		phonenumber: String!
 		amount: Float!
 	}
 	type Mutation {
@@ -42,6 +49,7 @@ const typeDefs = gql`
 		transferMoney(transferInput: TransferInput): Boolean
 		depositMoney(depositInput: DepositInput): User
 		withdrawalMoney(withdrawalInput: WithdrawalInput): User
+		transactions(userId: ID!): [Transaction!]!
 	}
 `;
 
