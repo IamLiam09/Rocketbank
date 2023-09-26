@@ -11,6 +11,7 @@ const resolvers = require("./resolvers/users");
 const User = require("./models/User");
 // Import the seeding script
 const seedDatabase = require("./utlis/seed");
+const verifyToken = require("./middleware/authenticateuser"); 
 
 // running the port from env or 5000 port
 const port = process.env.PORT || 5000;
@@ -22,7 +23,7 @@ app.use(async (req, res, next) => {
 	const token = req.headers.authorization || "";
 	try {
 		if (token) {
-			const user = jwt.verify(token, process.env.JWT_SECRET);
+			const user = verifyToken(req);
 			req.user = user;
 		}
 	} catch (error) {

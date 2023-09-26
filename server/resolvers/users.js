@@ -77,7 +77,7 @@ const resolvers = {
 				});
 				// Attach token to user model that we found
 				user.token = token;
-				return { id: user.id, ...user._doc };
+				return { id: user.id, ...user._doc, token };
 			}
 
 			if (!isPasswordValid) {
@@ -144,7 +144,6 @@ const resolvers = {
 			context
 		) {
 			const user = authenticateUser(context.req);
-			// console.log(user)
 			try {
 				const existingUser = await User.findOne({ phonenumber });
 				if (!existingUser) {
