@@ -42,5 +42,5 @@ async function startApolloServer() {
 	// Run the seeding script
 	app.listen(port, console.log(`server is running on ${port}`));
 }
-seedDatabase();
+// seedDatabase();
 startApolloServer();
