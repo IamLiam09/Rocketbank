@@ -13,13 +13,6 @@ const typeDefs = gql`
 		user(id: ID!): User
 		getUsers: [User]
 	}
-	type Transaction {
-		id: ID!
-		date: String!
-		amount: Float!
-		type: String!
-		user: User!
-	}
 	input RegisterInput {
 		username: String!
 		email: String!
@@ -30,6 +23,14 @@ const typeDefs = gql`
 		email: String!
 		password: String!
 	}
+	type Transaction {
+		id: ID!
+		date: String!
+		amount: Float!
+		type: String!
+		user: User!
+	}
+
 	input TransferInput {
 		sourcePhoneNumber: String!
 		destinationPhoneNumber: String!

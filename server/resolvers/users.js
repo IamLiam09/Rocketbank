@@ -53,7 +53,7 @@ const resolvers = {
 
 				// Attempt to insert the new user
 				// Registration successful
-				return { phonenumber: user.phonenumber };
+				return user;
 			} catch (error) {
 				throw new ApolloError(
 					`Account has already been created with these credentials other`

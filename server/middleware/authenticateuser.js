@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const { AuthenticationError } = require("apollo-server-express");
 
 const verifyToken = (req) => {
-	const authorizationHeader =req.body.token || req.query.token;
+	const authorizationHeader = req.body.token || req.query.token;
 	if (!authorizationHeader) {
 		console.log(authorizationHeader);
 		throw new AuthenticationError("Authorization header is missing.");

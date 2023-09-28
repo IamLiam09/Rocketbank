@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
-import { REGISTER_USER_MUTATION } from "..../server/resolvers/users";
+import { REGISTER_USER_MUTATION } from "../GraphQL/RegisterMutation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import zxcvbn from "zxcvbn";
 
 function RegisterForm() {
 	const [formData, setFormData] = useState({
@@ -14,24 +16,92 @@ function RegisterForm() {
 		phonenumber: "",
 	});
 
-	const [registerUser] = useMutation(REGISTER_USER_MUTATION);
-	// check for mismatched password
-	const [passwordMismatch, setPasswordMismatch] = useState(false);
-	// make the password visible
+	const [registerUser, { data, loading, error }] = useMutation(
+		REGISTER_USER_MUTATION
+	);
 	const [passwordVisibility, setPasswordVisibility] = useState(false);
 	const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
 		useState(false);
-	const handleChange = (e) => {
-		const { name, value } = e.target;
-		setFormData({ ...formData, [name]: value });
-	};
+	const [emailError, setEmailError] = useState(false);
+	const [phoneNumberError, setPhoneNumberError] = useState(false);
+	const [passwordStrength, setPasswordStrength] = useState(0);
+	const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+	const [passwordMismatch, setPasswordMismatch] = useState(false);
 	const togglePasswordVisibility = () => {
 		setPasswordVisibility(!passwordVisibility);
 	};
 	const toggleConfirmPasswordVisibility = () => {
 		setConfirmPasswordVisibility(!confirmPasswordVisibility);
 	};
+	const passwordStrengthLabel = (strength) => {
+		switch (strength) {
+			case 0:
+				return "Password strength: Very Weak";
+			case 1:
+				return "Password strength: Weak";
+			case 2:
+				return "Password strength: Fair";
+			case 3:
+				return "Password strength: Good";
+			case 4:
+				return "Password strength: Strong";
+			default:
+				return "";
+		}
+	};
 
+	const getStrengthClass = (strength) => {
+		switch (strength) {
+			case 0:
+				return "danger";
+			case 1:
+				return "danger";
+			case 2:
+				return "warning";
+			case 3:
+				return "info";
+			case 4:
+				return "success";
+			default:
+				return "";
+		}
+	};
+
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		if (name === "email") {
+			// Check if the input matches a basic email format
+			if (/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
+				setEmailError(false);
+				setFormData({ ...formData, [name]: value });
+			} else {
+				setEmailError(true);
+			}
+			setFormData({ ...formData, [name]: value });
+		}
+		if (name === "phonenumber") {
+			// Check if the input contains only digits and is 11 characters long
+			if (/^\d{11}$/.test(value)) {
+				setPhoneNumberError(false);
+				setFormData({ ...formData, [name]: value });
+			} else {
+				setPhoneNumberError(true);
+			}
+			setFormData({ ...formData, [name]: value });
+		}
+		if (name === "password") {
+			// Check password strength using zxcvbn
+			const result = zxcvbn(value);
+
+			// Set the password strength and error message
+			setPasswordStrength(result.score);
+			setPasswordErrorMessage(result.feedback.suggestions.join(" "));
+
+			setFormData({ ...formData, [name]: value });
+		} else {
+			setFormData({ ...formData, [name]: value });
+		}
+	};
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (formData.password !== formData.confirmPassword) {
@@ -39,13 +109,21 @@ function RegisterForm() {
 			return; // Prevent form submission
 		}
 		setPasswordMismatch(false); // Reset the error state
+		const { confirmPassword, ...registerInput } = formData;
 		try {
-			const { data } = await registerUser({ variables: formData });
-			// console.log("User registered:", data.registerUser);
+			const { data } = await registerUser({
+				variables: { registerInput },
+			});
+			if (!data || !data.registerUser) {
+				console.error("Registration failed.");
+				return;
+			}
+			if (loading) return <p>Loading...</p>;
+			if (error) return <p>Error: {error.message}</p>;
+			console.log("User registered:", data.registerUser);
 			// Handle successful registration (e.g., redirect to login page)
 		} catch (error) {
 			console.error("Registration error:", error);
-			// Handle registration error (e.g., display error message)
 		}
 	};
 
@@ -69,11 +147,16 @@ function RegisterForm() {
 						type="email"
 						name="email"
 						placeholder="Email"
-						className="form-control"
+						className={`form-control ${emailError ? "is-invalid" : ""}`}
 						value={formData.email}
 						onChange={handleChange}
 						required
 					/>
+					{emailError && (
+						<div className="invalid-feedback">
+							Input the correct format for email
+						</div>
+					)}
 				</div>
 				<div className="form-group mt-4">
 					<div className="input-group">
@@ -104,6 +187,18 @@ function RegisterForm() {
 							</span>
 						</div>
 					</div>
+					{passwordStrength > 0 && (
+						<div
+							className={`password-strength text-${getStrengthClass(
+								passwordStrength
+							)}`}
+						>
+							{passwordStrengthLabel(passwordStrength)}
+						</div>
+					)}
+					{passwordErrorMessage && (
+						<div className="invalid-feedback">{passwordErrorMessage}</div>
+					)}
 				</div>
 				<div className="form-group mt-4">
 					<div className="input-group">
@@ -143,17 +238,22 @@ function RegisterForm() {
 						type="tel"
 						name="phonenumber"
 						placeholder="Phonenumber"
-						className="form-control"
+						className={`form-control ${phoneNumberError ? "is-invalid" : ""}`}
 						value={formData.phonenumber}
 						onChange={handleChange}
 						required
 					/>
+					{phoneNumberError && (
+						<div className="invalid-feedback">
+							Phone number must be 11 digits long and be numbers.
+						</div>
+					)}
 				</div>
 				<button type="submit" className="btn btn-primary mt-4">
 					Register
 				</button>
 				<div className="mt-3">
-					Already have an account? <a href="/">Log in</a>
+					Already have an account? <Link to="/login">Log in</Link>
 				</div>
 			</form>
 		</div>
