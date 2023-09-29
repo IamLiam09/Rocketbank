@@ -3,21 +3,45 @@ import RegisterForm from "./pages/RegisterForm.js";
 import LoginForm from "./pages/LoginForm.js";
 import HomePage from "./pages/Home.js";
 import React, { useState } from "react";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import { useLocation } from "react-router-dom";
+import {
+	ApolloClient,
+	InMemoryCache,
+	ApolloProvider,
+	createHttpLink,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import NotFound from "./pages/NotFound";
+import AuthMiddleware from "./middleware/AuthMiddleware.js";
+import WithdrawalForm from "./pages/WithdrawForm.js";
 
-const client = new ApolloClient({
+const httpLink = createHttpLink({
 	uri: "http://localhost:5000/graphql",
+});
+const authLink = setContext((_, { headers }) => {
+	// Get the authentication token from wherever you've stored it
+	const token = localStorage.getItem("authToken"); // Example: Local Storage
+
+	// Return the headers to the context so HTTP link can read them
+	return {
+		headers: {
+			...headers,
+			authorization: token ? `Bearer ${token}` : "",
+		},
+	};
+});
+const client = new ApolloClient({
+	link: authLink.concat(httpLink),
 	cache: new InMemoryCache(),
 });
 function App() {
-	const location = useLocation();
-	console.log("Current route:", location.pathname);
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [userData, setUserData] = useState(null);
 	const handleLogin = (user) => {
-		// Callback function to receive user data from LoginPage
+		setIsAuthenticated(true);
 		setUserData(user);
+	};
+	const updateUserBalance = (newBalance) => {
+		setUser({ ...user, balance: newBalance });
 	};
 	return (
 		<ApolloProvider client={client}>
@@ -30,8 +54,18 @@ function App() {
 							render={(props) => <LoginForm onLogin={handleLogin} {...props} />}
 						/>
 						<Route
+							exact
 							path="/home"
-							render={(props) => <HomePage user={userData} {...props} />}
+							render={(props) => (
+								<AuthMiddleware>
+									<HomePage user={userData} {...props} />
+								</AuthMiddleware>
+							)}
+						/>
+
+						<Route
+							path="/home/withdraw"
+							render={(props) => <WithdrawalForm user={userData} {...props} />}
 						/>
 						<Route path="*" component={NotFound} />
 					</Switch>

@@ -3,14 +3,13 @@ import { useMutation } from "@apollo/client";
 import { REGISTER_USER_MUTATION } from "../GraphQL/RegisterMutation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import zxcvbn from "zxcvbn";
 import { useHistory } from "react-router-dom";
 
-
 function RegisterForm() {
-	const history = useHistory()
+	const history = useHistory();
 	const [formData, setFormData] = useState({
 		username: "",
 		email: "",
@@ -30,6 +29,7 @@ function RegisterForm() {
 	const [passwordStrength, setPasswordStrength] = useState(0);
 	const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
 	const [passwordMismatch, setPasswordMismatch] = useState(false);
+	const [redirect, setRedirect] = useState(false);
 	const togglePasswordVisibility = () => {
 		setPasswordVisibility(!passwordVisibility);
 	};
@@ -122,13 +122,22 @@ function RegisterForm() {
 				return;
 			}
 			console.log("User registered:", data.registerUser);
-			onRegister(data.registerUser)
-			console.log("Before history.push");
-			history.push("/home", {user: data.registerUser})
-			console.log("After history.push");
+			setRedirect(true);
+			history.push("/home", { user: data.registerUser });
 			// Handle successful registration (e.g., redirect to login page)
 		} catch (error) {
 			console.error("Registration error:", error);
+		}
+		if (redirect) {
+			// Redirect to the home page with props once registration is successful
+			return (
+				<Redirect
+					to={{
+						pathname: "/home",
+						state: { user: data.registerUser }, // Pass user data as props
+					}}
+				/>
+			);
 		}
 	};
 
@@ -261,6 +270,12 @@ function RegisterForm() {
 					Already have an account? <Link to="/login">Log in</Link>
 				</div>
 			</form>
+			{loading && (
+				// Display a loading spinner while fetching data
+				<div className="spinner-border text-primary" role="status">
+					<span className="sr-only">Loading...</span>
+				</div>
+			)}
 		</div>
 	);
 }

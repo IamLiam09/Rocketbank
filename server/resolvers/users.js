@@ -29,7 +29,7 @@ const resolvers = {
 				}
 				// Hash the password
 				const hashedPassword = await bcrypt.hash(password, 10);
-				const balance = 100.0; // Define and set an initial balance
+				const balance = 0.0; // Define and set an initial balance
 				// Create a new user in the database
 				const user = new User({
 					username,
@@ -123,7 +123,7 @@ const resolvers = {
 		},
 		async depositMoney(_, { depositInput: { phonenumber, amount } }, context) {
 			// Authenticate the user
-			const user = authenticateUser(context.req);
+			// const user = authenticateUser(context.req);
 			try {
 				const existingUser = await User.findOne({ phonenumber });
 				if (!existingUser) {
@@ -143,7 +143,7 @@ const resolvers = {
 			{ withdrawalInput: { phonenumber, amount } },
 			context
 		) {
-			const user = authenticateUser(context.req);
+			// const user = authenticateUser(context.req);
 			try {
 				const existingUser = await User.findOne({ phonenumber });
 				if (!existingUser) {

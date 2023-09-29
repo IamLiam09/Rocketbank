@@ -4,13 +4,10 @@ const express = require("express");
 const colors = require("colors");
 require("dotenv").config();
 // const { graphqlHTTP } = require("express-graphql");
-// const schema = require("./schema/schema");
 const connectDB = require("./config/db.js");
 const typeDefs = require("./schema/schema");
 const resolvers = require("./resolvers/users");
 const User = require("./models/User");
-// Import the seeding script
-const seedDatabase = require("./utlis/seed");
 const verifyToken = require("./middleware/authenticateuser"); 
 
 // running the port from env or 5000 port
@@ -42,5 +39,4 @@ async function startApolloServer() {
 	// Run the seeding script
 	app.listen(port, console.log(`server is running on ${port}`));
 }
-// seedDatabase();
 startApolloServer();

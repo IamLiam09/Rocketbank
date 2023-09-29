@@ -115,6 +115,12 @@ function LoginForm({ onLogin }) {
 					Don't have an account? <Link to="/">Register</Link>
 				</div>
 			</form>
+			{loading && (
+				// Display a loading spinner while fetching data
+				<div className="spinner-border text-primary" role="status">
+					<span className="sr-only">Loading...</span>
+				</div>
+			)}
 		</div>
 	);
 }
