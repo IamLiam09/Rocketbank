@@ -6,6 +6,7 @@ export const REGISTER_USER_MUTATION = gql`
 			email
 			phonenumber
 			balance
+			token
 		}
 	}
 `;

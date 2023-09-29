@@ -4,9 +4,11 @@ import { LOGIN_USER_MUTATION } from "../GraphQL/LoginMutation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-function LoginForm() {
+function LoginForm({ onLogin }) {
+	const history = useHistory();
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
@@ -20,6 +22,7 @@ function LoginForm() {
 	const togglePasswordVisibility = () => {
 		setPasswordVisibility(!passwordVisibility);
 	};
+	const [errorMessage, setErrorMessage] = useState("");
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -38,22 +41,22 @@ function LoginForm() {
 	};
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
-		const { confirmPassword, ...loginInput } = formData;
 		try {
-			const { data } = await registerUser({
-				variables: { loginInput },
+			const { data } = await loginUser({
+				variables: { loginInput: formData },
 			});
-			if (!data || !data.registerUser) {
-				console.error("Registration failed.");
+			if (!data || !data.loginUser) {
+				console.error("Login failed.");
+				setErrorMessage("Invalid email or password");
 				return;
 			}
-			if (loading) return <p>Loading...</p>;
-			if (error) return <p>Error: {error.message}</p>;
-			console.log("User registered:", data.registerUser);
+			console.log("Login:", data.loginUser);
+			onLogin(data.loginUser);
+			history.push("/home", { user: data.loginUser });
 			// Handle successful registration (e.g., redirect to login page)
 		} catch (error) {
-			console.error("Registration error:", error);
+			console.error("Login error:", error);
+			setErrorMessage("Invalid email or password");
 		}
 	};
 
@@ -61,6 +64,9 @@ function LoginForm() {
 		<div className="container">
 			<h2 className="mt-5">Login</h2>
 			<form onSubmit={handleSubmit}>
+				{errorMessage && (
+					<div className="alert alert-danger">{errorMessage}</div>
+				)}
 				<div className="form-group mt-4">
 					<input
 						type="email"

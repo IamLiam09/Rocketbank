@@ -6,8 +6,11 @@ import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import zxcvbn from "zxcvbn";
+import { useHistory } from "react-router-dom";
+
 
 function RegisterForm() {
+	const history = useHistory()
 	const [formData, setFormData] = useState({
 		username: "",
 		email: "",
@@ -118,9 +121,11 @@ function RegisterForm() {
 				console.error("Registration failed.");
 				return;
 			}
-			if (loading) return <p>Loading...</p>;
-			if (error) return <p>Error: {error.message}</p>;
 			console.log("User registered:", data.registerUser);
+			onRegister(data.registerUser)
+			console.log("Before history.push");
+			history.push("/home", {user: data.registerUser})
+			console.log("After history.push");
 			// Handle successful registration (e.g., redirect to login page)
 		} catch (error) {
 			console.error("Registration error:", error);

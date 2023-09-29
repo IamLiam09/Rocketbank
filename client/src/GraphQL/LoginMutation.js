@@ -5,6 +5,7 @@ export const LOGIN_USER_MUTATION = gql`
 			username
 			phonenumber
 			balance
+			token
 		}
 	}
 `;
