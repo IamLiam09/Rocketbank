@@ -13,6 +13,8 @@ import { setContext } from "@apollo/client/link/context";
 import NotFound from "./pages/NotFound";
 import AuthMiddleware from "./middleware/AuthMiddleware.js";
 import WithdrawalForm from "./pages/WithdrawForm.js";
+import DepositForm from "./pages/DepositPage.js";
+import TransferForm from "./pages/TransferPage.js";
 
 const httpLink = createHttpLink({
 	uri: "http://localhost:5000/graphql",
@@ -62,7 +64,14 @@ function App() {
 								</AuthMiddleware>
 							)}
 						/>
-
+						<Route
+							path="/home/deposit"
+							render={(props) => <DepositForm user={userData} {...props} />}
+						/>
+						<Route
+							path="/home/transfer"
+							render={(props) => <TransferForm user={userData} {...props} />}
+						/>
 						<Route
 							path="/home/withdraw"
 							render={(props) => <WithdrawalForm user={userData} {...props} />}

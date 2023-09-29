@@ -130,10 +130,10 @@ const resolvers = {
 					throw new Error("Account number not found");
 				}
 
-				user.balance += amount;
-				await user.save();
+				existingUser.balance += amount;
+				await existingUser.save();
 
-				return user;
+				return existingUser;
 			} catch (error) {
 				throw new Error(`Error depositing money: ${error.message}`);
 			}

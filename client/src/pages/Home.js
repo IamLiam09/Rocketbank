@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import deposit from "../Homepageimages/Deposit.png";
 import transfer from "../Homepageimages/transfer.png";
 import withdraw from "../Homepageimages/Withdraw.png";
-import WithdrawalForm from "./WithdrawForm"; // Adjust the import path as needed
 import { Link } from "react-router-dom";
 
 function HomePage(props) {

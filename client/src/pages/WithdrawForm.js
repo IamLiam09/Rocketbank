@@ -12,8 +12,6 @@ function WithdrawalForm(props) {
 
 	const handleWithdrawal = async (e) => {
 		e.preventDefault();
-		console.log("serp", phonenumber);
-		console.log(props)
 		try {
 			const { data } = await withdrawUser({
 				variables: {
@@ -23,7 +21,6 @@ function WithdrawalForm(props) {
 					},
 				},
 			});
-			console.log(data.withdrawUser);
 
 			if (data && data.withdrawalMoney) {
 				setMessage(
