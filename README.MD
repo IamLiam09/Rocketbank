@@ -61,4 +61,4 @@ SERVER:
 3. Run Server: type `npm run dev` in root folder or (recommended) use Visual Studio Code debugger to run it
 4. Run web: type `npm run start` in client folder
 
-[Click me](https://rocketbank-9yqv.onrender.com/)
+[Click me](https://rocketbank.netlify.app/)
