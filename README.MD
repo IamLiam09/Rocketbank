@@ -10,15 +10,18 @@ Cutom login:
     email: casemoney@gmail.com,
     password: 12345,
     Accountnumber/phonenumber: 987654321
-#### 
+
+####
+
     email: casey@gmail.com
     password: 12345
     Accountnumber/phonenumber: 1234567
+
 ####
+
     email: princewill835@gmail.com
     password: 38023723923
     Accountnumber/phonenumber: 1234567
-
 
 ## What's inside?
 
@@ -58,4 +61,4 @@ SERVER:
 3. Run Server: type `npm run dev` in root folder or (recommended) use Visual Studio Code debugger to run it
 4. Run web: type `npm run start` in client folder
 
-[Click me](https://www.google.com)
+[Click me](https://rocketbank-9yqv.onrender.com/)
