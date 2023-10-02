@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const { ApolloError } = require("apollo-server-express");
+const TransactionModel = require("../models/Transaction.js");
 const authenticateUser = require("../middleware/authenticateuser");
 
 const resolvers = {
@@ -162,13 +163,32 @@ const resolvers = {
 				throw new Error(`Error withdrawing money: ${error.message}`);
 			}
 		},
-		async transactions(_, { userId }) {
+		async createTransaction(_, { transactionInput }) {
 			try {
-				// Fetch transactions for the given user ID from your database
-				const userTransactions = await TransactionModel.find({ user: userId });
+				// Create a new transaction in the database
+				const newTransaction = new TransactionModel({
+					date: transactionInput.date,
+					amount: transactionInput.amount,
+					type: transactionInput.type,
+					user: transactionInput.userId, // Assuming you pass the user ID in the input
+				});
+
+				await newTransaction.save();
+
+				return newTransaction;
+			} catch (error) {
+				throw new Error(`Error creating transaction: ${error.message}`);
+			}
+		},
+		async transactions(user) {
+			try {
+				// Fetch transactions for the user from your database
+				const userTransactions = await TransactionModel.find({
+					user: user._id,
+				})
 				return userTransactions;
 			} catch (error) {
-				throw new Error(`Error fetching transactions: ${error.message}`);
+				throw new Error(`Error fetching user transactions: ${error.message}`);
 			}
 		},
 	},

@@ -50,7 +50,12 @@ function LoginForm({ onLogin }) {
 				setErrorMessage("Invalid email or password");
 				return;
 			}
-			console.log("Login:", data.loginUser);
+			// Extract the token from the login response
+			const token = data.loginUser.token;
+
+			// Save the token to localStorage
+			localStorage.setItem("authToken", token);
+			// console.log("Login:", data.loginUser);
 			onLogin(data.loginUser);
 			history.push("/home", { user: data.loginUser });
 			// Handle successful registration (e.g., redirect to login page)

@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import deposit from "../Homepageimages/Deposit.png";
 import transfer from "../Homepageimages/transfer.png";
 import withdraw from "../Homepageimages/Withdraw.png";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
+import { ApolloClient, InMemoryCache, useQuery } from "@apollo/client";
 
 function HomePage(props) {
+	const token = localStorage.getItem("authToken");
+	if (!token) {
+		return <Redirect to="/login" />;
+	  }
 	const [LoggedUser, setUser] = useState(props.location.state?.user);
 	const [loading, setLoading] = useState(true);
 

@@ -22,14 +22,20 @@ const httpLink = createHttpLink({
 const authLink = setContext((_, { headers }) => {
 	// Get the authentication token from wherever you've stored it
 	const token = localStorage.getItem("authToken"); // Example: Local Storage
-
+	console.log(headers)
+	console.log(token)
 	// Return the headers to the context so HTTP link can read them
+	const enhancedHeaders = token
+    ? {
+        ...headers,
+        authorization: `Bearer ${token}`,
+      }
+    : headers;
+
 	return {
-		headers: {
-			...headers,
-			authorization: token ? `Bearer ${token}` : "",
-		},
+		headers: enhancedHeaders,
 	};
+	
 });
 const client = new ApolloClient({
 	link: authLink.concat(httpLink),
@@ -76,7 +82,7 @@ function App() {
 							path="/home/withdraw"
 							render={(props) => <WithdrawalForm user={userData} {...props} />}
 						/>
-						<Route path="*" component={NotFound} />
+						<Route component={NotFound} />
 					</Switch>
 				</div>
 			</BrowserRouter>
