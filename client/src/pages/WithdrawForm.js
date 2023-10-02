@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { WITHDRAW_USER_MUTATION } from "../GraphQL/WithdrawMutation";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 
 function WithdrawalForm(props) {
+	const token = localStorage.getItem("authToken");
+	if (!token) {
+		return <Redirect to="/login" />;
+	}
 	const { phonenumber } = props.user;
 	const [withdrawalAmount, setWithdrawalAmount] = useState("");
 	const [message, setMessage] = useState("");

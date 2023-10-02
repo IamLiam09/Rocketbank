@@ -45,7 +45,7 @@ const resolvers = {
 					{ userId: user._id, email },
 					process.env.JWT_SECRET,
 					{
-						expiresIn: "1h",
+						expiresIn: "10m",
 					}
 				);
 				user.token = token;
@@ -74,7 +74,7 @@ const resolvers = {
 			if (user && isPasswordValid) {
 				// Generate a JWT token
 				const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-					expiresIn: "1h",
+					expiresIn: "10m",
 				});
 				// Attach token to user model that we found
 				user.token = token;

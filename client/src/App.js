@@ -22,20 +22,19 @@ const httpLink = createHttpLink({
 const authLink = setContext((_, { headers }) => {
 	// Get the authentication token from wherever you've stored it
 	const token = localStorage.getItem("authToken"); // Example: Local Storage
-	console.log(headers)
-	console.log(token)
+	console.log(headers);
+	console.log(token);
 	// Return the headers to the context so HTTP link can read them
 	const enhancedHeaders = token
-    ? {
-        ...headers,
-        authorization: `Bearer ${token}`,
-      }
-    : headers;
+		? {
+				...headers,
+				authorization: `Bearer ${token}`,
+		  }
+		: headers;
 
 	return {
 		headers: enhancedHeaders,
 	};
-	
 });
 const client = new ApolloClient({
 	link: authLink.concat(httpLink),

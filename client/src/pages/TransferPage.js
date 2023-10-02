@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { TRANSFERMONEY_USER_MUTATION } from "../GraphQL/TransferMutation.js";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 
 function TransferForm(props) {
+	const token = localStorage.getItem("authToken");
+	if (!token) {
+		return <Redirect to="/login" />;
+	}
 	const { phonenumber } = props.user;
 	const [formData, setFormData] = useState({
 		amount: "",
@@ -50,9 +54,7 @@ function TransferForm(props) {
 			});
 			console.log(data.transferUser);
 			if (data && data.transferMoney) {
-				setMessage(
-					`transfer successful`
-				);
+				setMessage(`transfer successful`);
 			} else {
 				setMessage("transfer failed.");
 			}
