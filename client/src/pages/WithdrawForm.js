@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { WITHDRAW_USER_MUTATION } from "../GraphQL/WithdrawMutation";
-import { Link, Redirect } from "react-router-dom";
+import { Link, Redirect, useHistory } from "react-router-dom";
 
 function WithdrawalForm(props) {
+	const history = useHistory();
 	const token = localStorage.getItem("authToken");
 	const tokenExpiration = localStorage.getItem("authTokenExpiration");
 	if (!token || (tokenExpiration && Date.now() > tokenExpiration)) {
@@ -12,7 +13,8 @@ function WithdrawalForm(props) {
 	if (!props.user) {
 		return <Redirect to="/login" />;
 	}
-	const { phonenumber } = props.user;
+	const { user } = props;
+	const { phonenumber } = user;
 	const [withdrawalAmount, setWithdrawalAmount] = useState("");
 	const [message, setMessage] = useState("");
 	// Use your withdrawal mutation and logic here
@@ -35,6 +37,15 @@ function WithdrawalForm(props) {
 				setMessage(
 					`Withdrawal successful. New balance: ₦${data.withdrawalMoney.balance}`
 				);
+				// Update the user with the new balance
+				const updatedUser = {
+					...user, // Use the user from props
+					balance: data.withdrawalMoney.balance,
+				};
+
+				setTimeout(() => {
+					history.push("/home", { user: updatedUser });
+				}, 500);
 			} else {
 				setMessage("Withdrawal failed.");
 			}
@@ -63,7 +74,15 @@ function WithdrawalForm(props) {
 					Withdraw
 				</button>
 			</form>
-			<Link to="/home" className="mt-3">
+			<Link
+				to={{
+					pathname: "/home",
+					state: {
+						user: user, // Pass the user data back to the home page
+					},
+				}}
+				className="mt-3"
+			>
 				Back to Home
 			</Link>
 		</div>

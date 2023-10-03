@@ -74,7 +74,7 @@ const typeDefs = gql`
   type Mutation {
     registerUser(registerInput: RegisterInput): User
     loginUser(loginInput: LoginInput): User
-    transferMoney(transferInput: TransferInput): Boolean
+    transferMoney(transferInput: TransferInput): User
     depositMoney(depositInput: DepositInput): User
     withdrawalMoney(withdrawalInput: WithdrawalInput): User
     transactions(userId: ID!): [Transaction!]!

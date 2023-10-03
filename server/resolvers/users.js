@@ -113,7 +113,7 @@ const resolvers = {
 		},
 		async transferMoney(
 			_,
-			{ transferInput: { sourcePhoneNumber, destinationPhoneNumber, amount } }
+			{ transferInput: { sourcePhoneNumber, destinationPhoneNumber, amount, type } }
 		) {
 			// Implement logic for transferring money here
 			try {
@@ -142,7 +142,7 @@ const resolvers = {
 				await sourceUser.save();
 				await destinationUser.save();
 
-				return true; // Return true to indicate a successful transfer
+				return sourceUser; // Return true to indicate a successful transfer
 				// Handle errors, including insufficient funds or invalid user IDs
 			} catch (error) {
 				throw new Error(`${error.message}`);

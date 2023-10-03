@@ -45,7 +45,13 @@ function App() {
 		setUserData(user);
 	};
 	const updateUserBalance = (newBalance) => {
-		setUser({ ...user, balance: newBalance });
+		if (userData) {
+			const updatedUser = {
+			  ...userData,
+			  balance: newBalance,
+			};
+			setUserData(updatedUser);
+		  }
 	};
 	return (
 		<ApolloProvider client={client}>
@@ -59,7 +65,7 @@ function App() {
 							path="/home"
 							render={(props) => (
 								<AuthMiddleware>
-									<HomePage  {...props} />
+									<HomePage client={client} {...props} />
 								</AuthMiddleware>
 							)}
 						/>

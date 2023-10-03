@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { TRANSFERMONEY_USER_MUTATION } from "../GraphQL/TransferMutation.js";
-import { Link, Redirect } from "react-router-dom";
+import { Link, Redirect, useHistory } from "react-router-dom";
 
 function TransferForm(props) {
+	const history = useHistory();
 	const token = localStorage.getItem("authToken");
 	const tokenExpiration = localStorage.getItem("authTokenExpiration");
 	if (!token || (tokenExpiration && Date.now() > tokenExpiration)) {
@@ -12,7 +13,8 @@ function TransferForm(props) {
 	if (!props.user) {
 		return <Redirect to="/login" />;
 	}
-	const { phonenumber } = props.user;
+	const { user } = props;
+	const { phonenumber } = user;
 	const [formData, setFormData] = useState({
 		amount: "",
 		phonenumber: "",
@@ -36,8 +38,6 @@ function TransferForm(props) {
 	};
 	const handletransfer = async (e) => {
 		e.preventDefault();
-		console.log("serp", phonenumber);
-		console.log(props);
 
 		// Check if the transferAmount is greater than $100
 		// Check if the transfer amount is greater than $100
@@ -59,8 +59,15 @@ function TransferForm(props) {
 			});
 			if (data && data.transferMoney) {
 				setMessage(`transfer successful`);
+				const updatedUser = {
+					...user, // Use the user from props
+					balance: data.transferMoney.balance,
+				};
+				setTimeout(() => {
+					history.push("/home", { user: updatedUser });
+				}, 500);
 			} else {
-				setMessage("transfer failed.");
+				setMessage("Transfer failed.");
 			}
 		} catch (error) {
 			setMessage(`${error.message}`);
@@ -100,7 +107,15 @@ function TransferForm(props) {
 					transfer
 				</button>
 			</form>
-			<Link to="/home" className="mt-3">
+			<Link
+				to={{
+					pathname: "/home",
+					state: {
+						user: user, // Pass the user data back to the home page
+					},
+				}}
+				className="mt-3"
+			>
 				Back to Home
 			</Link>
 		</div>

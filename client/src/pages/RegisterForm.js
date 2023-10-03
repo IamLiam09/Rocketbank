@@ -128,7 +128,7 @@ function RegisterForm() {
 			setTimeout(() => {
 				setRegistrationSuccess(true);
 				history.push("/login");
-			  }, 1500);
+			}, 1500);
 		} catch (error) {
 			console.error(error);
 		}

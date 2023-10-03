@@ -1,28 +1,37 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { DEPOSIT_USER_MUTATION } from "../GraphQL/DepositMutation";
-import { Link, Redirect } from "react-router-dom";
+import { Link, Redirect, useHistory } from "react-router-dom";
 
 function DepositForm(props) {
+	const history = useHistory();
 	const token = localStorage.getItem("authToken");
 	const tokenExpiration = localStorage.getItem("authTokenExpiration");
+
+	// Redirect to login if no token or token is expired
 	if (!token || (tokenExpiration && Date.now() > tokenExpiration)) {
 		return <Redirect to="/login" />;
 	}
+
+	// Redirect to login if user is not available
 	if (!props.user) {
 		return <Redirect to="/login" />;
 	}
-	console.log(props);
-	const { phonenumber } = props.user;
+
+	// Extract user and phonenumber from props
+	const { user } = props;
+	const { phonenumber } = user;
+
+	// State to manage deposit amount and message
 	const [depositAmount, setDepositAmount] = useState("");
 	const [message, setMessage] = useState("");
-	// Use your deposit mutation and logic here
+
+	// GraphQL mutation hook for deposit
 	const [depositUser] = useMutation(DEPOSIT_USER_MUTATION);
 
+	// Event handler for deposit button click
 	const handleDeposit = async (e) => {
 		e.preventDefault();
-		// console.log("serp", phonenumber);
-		// console.log(props);
 
 		// Check if the depositAmount is greater than $100
 		if (parseFloat(depositAmount) > 100) {
@@ -40,17 +49,27 @@ function DepositForm(props) {
 					},
 				},
 			});
-			console.log(data.depositUser);
+
 			if (data && data.depositMoney) {
 				setMessage(
 					`Deposit successful. New balance: ₦${data.depositMoney.balance}`
 				);
-				console.log(data.depositUser);
+
+				// Update the user with the new balance
+				const updatedUser = {
+					...user, // Use the user from props
+					balance: data.depositMoney.balance,
+				};
+
+				// Navigate back to home with updated user data
+				setTimeout(() => {
+					history.push("/home", { user: updatedUser });
+				}, 500);
 			} else {
 				setMessage("Deposit failed.");
 			}
 		} catch (error) {
-			setMessage(`Deposit error: ${error.message}`);
+			setMessage(`${error.message}`);
 		}
 	};
 
@@ -74,7 +93,15 @@ function DepositForm(props) {
 					Deposit
 				</button>
 			</form>
-			<Link to="/home" className="mt-3">
+			<Link
+				to={{
+					pathname: "/home",
+					state: {
+						user: user, // Pass the user data back to the home page
+					},
+				}}
+				className="mt-3"
+			>
 				Back to Home
 			</Link>
 		</div>
