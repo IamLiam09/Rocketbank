@@ -2,6 +2,7 @@ const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
   type User {
+    id: ID!
     username: String!
     email: String!
     password: String!
@@ -13,9 +14,9 @@ const typeDefs = gql`
 
   type Query {
     user(id: ID!): User
-    getUsers: [User]
-    getUserData: User
-    transactions(userId: ID!): [Transaction]
+    getUsers(id: ID!): [User]
+    getUserData(id: ID!): User
+    transactions(id: ID!): [Transaction]
   }
 
   input RegisterInput {

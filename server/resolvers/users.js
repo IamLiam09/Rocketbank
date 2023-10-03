@@ -7,11 +7,37 @@ const authenticateUser = require("../middleware/authenticateuser");
 
 const resolvers = {
 	Query: {
-		user: ({ user }) => {
-			// Return the currently authenticated user
-			user.findById(ID);
+		user: async (_, { id }) => {
+			try {
+				// Find the user by ID and return it
+				const user = await User.findById(id);
+				return user;
+			} catch (error) {
+				// Handle errors if the user is not found or other issues
+				console.error("Error fetching user:", error);
+				return null; // Return null or handle the error as needed
+			}
 		},
+		getUsers: async (_, { id }) => {
+			try {
+			  // Implement logic to retrieve a list of users, possibly filtered by ID
+			  const users = await User.find({ _id: id }); // Example: Find users by ID
+			  return users;
+			} catch (error) {
+			  throw new Error(`Error fetching users: ${error.message}`);
+			}
+		  },
+		  getUserData: async (_, { id }) => {
+			try {
+			  // Implement logic to retrieve a single user by ID
+			  const user = await User.findById(id); // Example: Find a user by ID
+			  return user;
+			} catch (error) {
+			  throw new Error(`Error fetching user data: ${error.message}`);
+			}
+		  },
 	},
+
 	Mutation: {
 		async registerUser(
 			_,
@@ -119,10 +145,10 @@ const resolvers = {
 				return true; // Return true to indicate a successful transfer
 				// Handle errors, including insufficient funds or invalid user IDs
 			} catch (error) {
-				throw new Error(`Error transferring money: ${error.message}`);
+				throw new Error(`${error.message}`);
 			}
 		},
-		async depositMoney(_, { depositInput: { phonenumber, amount } }, context) {
+		async depositMoney(_, { depositInput: { phonenumber, amount, type } }, context) {
 			// Authenticate the user
 			// const user = authenticateUser(context.req);
 			try {
@@ -136,12 +162,12 @@ const resolvers = {
 
 				return existingUser;
 			} catch (error) {
-				throw new Error(`Error depositing money: ${error.message}`);
+				throw new Error(`${error.message}`);
 			}
 		},
 		async withdrawalMoney(
 			_,
-			{ withdrawalInput: { phonenumber, amount } },
+			{ withdrawalInput: { phonenumber, amount, type } },
 			context
 		) {
 			// const user = authenticateUser(context.req);
@@ -160,7 +186,7 @@ const resolvers = {
 
 				return existingUser;
 			} catch (error) {
-				throw new Error(`Error withdrawing money: ${error.message}`);
+				throw new Error(`${error.message}`);
 			}
 		},
 		async createTransaction(_, { transactionInput }) {
@@ -185,7 +211,7 @@ const resolvers = {
 				// Fetch transactions for the user from your database
 				const userTransactions = await TransactionModel.find({
 					user: user._id,
-				})
+				});
 				return userTransactions;
 			} catch (error) {
 				throw new Error(`Error fetching user transactions: ${error.message}`);

@@ -5,9 +5,14 @@ import { Link, Redirect } from "react-router-dom";
 
 function DepositForm(props) {
 	const token = localStorage.getItem("authToken");
-	if (!token) {
+	const tokenExpiration = localStorage.getItem("authTokenExpiration");
+	if (!token || (tokenExpiration && Date.now() > tokenExpiration)) {
 		return <Redirect to="/login" />;
 	}
+	if (!props.user) {
+		return <Redirect to="/login" />;
+	}
+	console.log(props);
 	const { phonenumber } = props.user;
 	const [depositAmount, setDepositAmount] = useState("");
 	const [message, setMessage] = useState("");
@@ -16,8 +21,8 @@ function DepositForm(props) {
 
 	const handleDeposit = async (e) => {
 		e.preventDefault();
-		console.log("serp", phonenumber);
-		console.log(props);
+		// console.log("serp", phonenumber);
+		// console.log(props);
 
 		// Check if the depositAmount is greater than $100
 		if (parseFloat(depositAmount) > 100) {
@@ -31,13 +36,16 @@ function DepositForm(props) {
 					depositInput: {
 						phonenumber: phonenumber, // Replace with actual phone number
 						amount: parseFloat(depositAmount),
+						type: "DEPOSIT",
 					},
 				},
 			});
+			console.log(data.depositUser);
 			if (data && data.depositMoney) {
 				setMessage(
 					`Deposit successful. New balance: ₦${data.depositMoney.balance}`
 				);
+				console.log(data.depositUser);
 			} else {
 				setMessage("Deposit failed.");
 			}

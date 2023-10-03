@@ -3,44 +3,39 @@ import deposit from "../Homepageimages/Deposit.png";
 import transfer from "../Homepageimages/transfer.png";
 import withdraw from "../Homepageimages/Withdraw.png";
 import { Link, Redirect } from "react-router-dom";
-import { ApolloClient, InMemoryCache, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
+import { GET_USER_DATA_QUERY } from "../GraphQL/GetUserMutaion";
 
 function HomePage(props) {
 	const token = localStorage.getItem("authToken");
 	if (!token) {
 		return <Redirect to="/login" />;
-	  }
+	}
 	const [LoggedUser, setUser] = useState(props.location.state?.user);
-	const [loading, setLoading] = useState(true);
+	const [userDataFromServer, setUserDataFromServer] = useState(null); 
+	const [phonenumber, setPhonenumber] = useState(null); 
+	if (!LoggedUser) {
+		return <p className="text-white">Loading...</p>;
+	}
 
+	const { loading, error, data } = useQuery(GET_USER_DATA_QUERY, {
+		variables: { getUserDataId: LoggedUser.id },
+	});
+	// console.log("LoggedUser", LoggedUser);
+	// console.log("serverloading", loading);
+	// console.log("error", error);
 	useEffect(() => {
-		// Simulate fetching user data from the server
-		// Replace this with your actual data fetching logic
-		const userData = props.location.state?.user;
+		if (data) {
+			// Handle the fetched data here
+			const userDataFromServer = data.getUserData;
 
-		const fetchData = async () => {
-			try {
-				// Simulate a network request with a delay
-				await new Promise((resolve) => setTimeout(resolve, 2000));
-				const response = await fetch("");
+			// Do something with the data, if needed
+			console.log("inside", userDataFromServer);
+			localStorage.setItem("userDataFromServer", JSON.stringify(userDataFromServer));
+			setPhonenumber(userDataFromServer.phonenumber);
 
-				const updatedUserData = {
-					username: userData?.username || "",
-					balance: userData?.balance || 0,
-					phonenumber: userData?.phonenumber || "",
-				};
-
-				setUser(updatedUserData);
-				setLoading(false);
-			} catch (error) {
-				console.error("Error fetching user data:", error);
-				// Handle error here (e.g., set an error state)
-				setLoading(false);
-			}
-		};
-
-		fetchData();
-	}, [props.location.state]);
+		}
+	}, [loading, error, data]);
 
 	if (loading) {
 		return <p className="text-white">Loading...</p>;
@@ -67,9 +62,7 @@ function HomePage(props) {
 				<h1 className="mt-0 text-white">{formattedBalance}</h1>
 			</div>
 			<div className="d-flex justify-content-evenly">
-				<div
-					className="w-5 d-flex flex-column align-items-center cursor-pointer"
-				>
+				<div className="w-5 d-flex flex-column align-items-center cursor-pointer">
 					<Link
 						to={{
 							pathname: "/home/deposit",
@@ -84,9 +77,7 @@ function HomePage(props) {
 						</p>
 					</Link>
 				</div>
-				<div
-					className="w-5 d-flex flex-column align-items-center cursor-pointer"
-				>
+				<div className="w-5 d-flex flex-column align-items-center cursor-pointer">
 					<Link
 						to={{
 							pathname: "/home/transfer",

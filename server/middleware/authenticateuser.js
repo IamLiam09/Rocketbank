@@ -2,20 +2,23 @@ const jwt = require("jsonwebtoken");
 const { AuthenticationError } = require("apollo-server-express");
 
 const verifyToken = (req) => {
-	const authorizationHeader = req.body.token || req.query.token;
-	if (!authorizationHeader) {
-		console.log(authorizationHeader);
-		throw new AuthenticationError("Authorization header is missing.");
-	}
+  // Get the authorization header from the request
+  const authorizationHeader = req.headers.authorization;
 
-	const token = authorizationHeader.replace("Bearer ", "");
+  if (!authorizationHeader) {
+    throw new AuthenticationError("Authorization header is missing.");
+  }
 
-	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		return decoded;
-	} catch (error) {
-		throw new AuthenticationError("Invalid or expired token.");
-	}
+  // Extract the token from the "Bearer" token in the header
+  const token = authorizationHeader.replace("Bearer ", "");
+
+  try {
+    // Verify and decode the token using your JWT_SECRET
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (error) {
+    throw new AuthenticationError("Invalid or expired token.");
+  }
 };
 
 module.exports = verifyToken;

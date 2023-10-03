@@ -7,8 +7,8 @@
 Banking app built in Mongo, Express, React, and Node.
 Cutom login:
 
-    email: casemoney@gmail.com,
-    password: 12345,
+    email: casemoney@gmail.com
+    password: 12345
     Accountnumber/phonenumber: 987654321
 
 ####
@@ -19,9 +19,9 @@ Cutom login:
 
 ####
 
-    email: princewill835@gmail.com
-    password: 38023723923
-    Accountnumber/phonenumber: 1234567
+    email: man@gmaill.com
+    password: 12345
+    Accountnumber/phonenumber: 6960660
 
 ## What's inside?
 

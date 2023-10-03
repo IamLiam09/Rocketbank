@@ -7,6 +7,7 @@ import { Link, Redirect } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import zxcvbn from "zxcvbn";
 import { useHistory } from "react-router-dom";
+import Alert from "react-bootstrap/Alert";
 
 function RegisterForm() {
 	const history = useHistory();
@@ -29,7 +30,8 @@ function RegisterForm() {
 	const [passwordStrength, setPasswordStrength] = useState(0);
 	const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
 	const [passwordMismatch, setPasswordMismatch] = useState(false);
-	const [redirect, setRedirect] = useState(false);
+	const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
 	const togglePasswordVisibility = () => {
 		setPasswordVisibility(!passwordVisibility);
 	};
@@ -121,23 +123,14 @@ function RegisterForm() {
 				console.error("Registration failed.");
 				return;
 			}
-			console.log("User registered:", data.registerUser);
-			setRedirect(true);
-			history.push("/home", { user: data.registerUser });
-			// Handle successful registration (e.g., redirect to login page)
+			// console.log("User registered:", data.registerUser);
+			setRegistrationSuccess(true);
+			setTimeout(() => {
+				setRegistrationSuccess(true);
+				history.push("/login");
+			  }, 1500);
 		} catch (error) {
-			console.error("Registration error:", error);
-		}
-		if (redirect) {
-			// Redirect to the home page with props once registration is successful
-			return (
-				<Redirect
-					to={{
-						pathname: "/home",
-						state: { user: data.registerUser }, // Pass user data as props
-					}}
-				/>
-			);
+			console.error(error);
 		}
 	};
 
@@ -270,6 +263,11 @@ function RegisterForm() {
 					Already have an account? <Link to="/login">Log in</Link>
 				</div>
 			</form>
+			{registrationSuccess && (
+				<Alert variant="success" className="mt-3">
+					Registration successful! You can now <Link to="/login">log in</Link>.
+				</Alert>
+			)}
 			{loading && (
 				// Display a loading spinner while fetching data
 				<div className="spinner-border text-primary" role="status">

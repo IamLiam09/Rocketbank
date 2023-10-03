@@ -8,8 +8,8 @@ const connectDB = require("./config/db.js");
 const typeDefs = require("./schema/schema");
 const resolvers = require("./resolvers/users");
 const User = require("./models/User");
-const verifyToken = require("./middleware/authenticateuser"); 
-const cors = require("cors")
+const verifyToken = require("./middleware/authenticateuser");
+const cors = require("cors");
 
 // running the port from env or 5000 port
 const port = process.env.PORT || 5000;
@@ -29,11 +29,11 @@ app.use(async (req, res, next) => {
 	}
 	next();
 });
-app.use(cors())
+app.use(cors());
 app.get("/", (req, res) => {
-	res.setHeader("Access-Control-Allow-Credentials", "true")
-	res.send("Api is running...")
-})
+	res.setHeader("Access-Control-Allow-Credentials", "true");
+	res.send("Api is running...");
+});
 async function startApolloServer() {
 	const server = new ApolloServer({
 		typeDefs,

@@ -5,7 +5,11 @@ import { Link, Redirect } from "react-router-dom";
 
 function WithdrawalForm(props) {
 	const token = localStorage.getItem("authToken");
-	if (!token) {
+	const tokenExpiration = localStorage.getItem("authTokenExpiration");
+	if (!token || (tokenExpiration && Date.now() > tokenExpiration)) {
+		return <Redirect to="/login" />;
+	}
+	if (!props.user) {
 		return <Redirect to="/login" />;
 	}
 	const { phonenumber } = props.user;
@@ -22,6 +26,7 @@ function WithdrawalForm(props) {
 					withdrawalInput: {
 						phonenumber: phonenumber, // Replace with actual phone number
 						amount: parseFloat(withdrawalAmount),
+						type: "WITHDRAWAL",
 					},
 				},
 			});
@@ -34,7 +39,7 @@ function WithdrawalForm(props) {
 				setMessage("Withdrawal failed.");
 			}
 		} catch (error) {
-			setMessage(`Withdrawal error: ${error.message}`);
+			setMessage(`${error.message}`);
 		}
 	};
 
