@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const { ApolloError } = require("apollo-server-express");
-const TransactionModel = require("../models/Transaction.js");
+const Transaction = require("../models/Transaction.js");
 const authenticateUser = require("../middleware/authenticateuser");
 
 const resolvers = {
@@ -10,7 +10,7 @@ const resolvers = {
 		user: async (_, { id }) => {
 			try {
 				// Find the user by ID and return it
-				const user = await User.findById(id);
+				const user = await User.findById(id).populate("transactions");
 				return user;
 			} catch (error) {
 				// Handle errors if the user is not found or other issues
@@ -20,22 +20,22 @@ const resolvers = {
 		},
 		getUsers: async (_, { id }) => {
 			try {
-			  // Implement logic to retrieve a list of users, possibly filtered by ID
-			  const users = await User.find({ _id: id }); // Example: Find users by ID
-			  return users;
+				// Implement logic to retrieve a list of users, possibly filtered by ID
+				const users = await User.find({ _id: id }).populate("transactions"); // Example: Find users by ID
+				return users;
 			} catch (error) {
-			  throw new Error(`Error fetching users: ${error.message}`);
+				throw new Error(`Error fetching users: ${error.message}`);
 			}
-		  },
-		  getUserData: async (_, { id }) => {
+		},
+		getUserData: async (_, { id }) => {
 			try {
-			  // Implement logic to retrieve a single user by ID
-			  const user = await User.findById(id); // Example: Find a user by ID
-			  return user;
+				// Implement logic to retrieve a single user by ID
+				const user = await User.findById(id).populate("transactions"); // Example: Find a user by ID
+				return user;
 			} catch (error) {
-			  throw new Error(`Error fetching user data: ${error.message}`);
+				throw new Error(`Error fetching user data: ${error.message}`);
 			}
-		  },
+		},
 	},
 
 	Mutation: {
@@ -64,6 +64,7 @@ const resolvers = {
 					password: hashedPassword,
 					phonenumber,
 					balance,
+					transactions: [],
 				});
 
 				// Generate a JWT token
@@ -89,7 +90,7 @@ const resolvers = {
 		},
 		async loginUser(_, { loginInput: { email, password } }) {
 			// Find the user by email
-			const user = await User.findOne({ email });
+			const user = await User.findOne({ email }).populate("transactions");
 
 			if (!user) {
 				throw new ApolloError("Incorrect password or email");
@@ -113,19 +114,22 @@ const resolvers = {
 		},
 		async transferMoney(
 			_,
-			{ transferInput: { sourcePhoneNumber, destinationPhoneNumber, amount, type } }
+			{ transferInput: { sourcePhoneNumber, destinationPhoneNumber, amount } }
 		) {
 			// Implement logic for transferring money here
 			try {
 				// Find the source and destination users by phone numbers
 				const sourceUser = await User.findOne({
 					phonenumber: sourcePhoneNumber,
-				});
+				}).populate("transactions");
+
 				const destinationUser = await User.findOne({
 					phonenumber: destinationPhoneNumber,
-				});
+				}).populate("transactions");
 
 				if (!sourceUser || !destinationUser) {
+					console.log(sourceUser);
+					console.log(destinationUser);
 					throw new ApolloError("Account number not found");
 				}
 
@@ -142,22 +146,54 @@ const resolvers = {
 				await sourceUser.save();
 				await destinationUser.save();
 
-				return sourceUser; // Return true to indicate a successful transfer
+				// Create a transfer transaction
+				const transferTransaction = new Transaction({
+					date: new Date().toISOString(),
+					amount,
+					type: "TRANSFER",
+					user: sourceUser._id,
+				});
+
+				await transferTransaction.save();
+
+				sourceUser.transactions.push(transferTransaction);
+				destinationUser.transactions.push(transferTransaction);
+
+				await sourceUser.save();
+				await destinationUser.save();
+
+				return sourceUser;
 				// Handle errors, including insufficient funds or invalid user IDs
 			} catch (error) {
 				throw new Error(`${error.message}`);
 			}
 		},
-		async depositMoney(_, { depositInput: { phonenumber, amount, type } }, context) {
+		async depositMoney(_, { depositInput: { phonenumber, amount } }, context) {
 			// Authenticate the user
 			// const user = authenticateUser(context.req);
 			try {
-				const existingUser = await User.findOne({ phonenumber });
+				const existingUser = await User.findOne({ phonenumber }).populate(
+					"transactions"
+				);
+
 				if (!existingUser) {
 					throw new Error("Account number not found");
 				}
 
 				existingUser.balance += amount;
+				await existingUser.save();
+
+				// Create a deposit transaction
+				const depositTransaction = new Transaction({
+					date: new Date().toISOString(),
+					amount,
+					type: "DEPOSIT",
+					user: existingUser._id,
+				});
+				await depositTransaction.save();
+
+				existingUser.transactions.push(depositTransaction);
+
 				await existingUser.save();
 
 				return existingUser;
@@ -167,12 +203,14 @@ const resolvers = {
 		},
 		async withdrawalMoney(
 			_,
-			{ withdrawalInput: { phonenumber, amount, type } },
+			{ withdrawalInput: { phonenumber, amount } },
 			context
 		) {
 			// const user = authenticateUser(context.req);
 			try {
-				const existingUser = await User.findOne({ phonenumber });
+				const existingUser = await User.findOne({ phonenumber }).populate(
+					"transactions"
+				);
 				if (!existingUser) {
 					throw new Error("Account Number not found");
 				}
@@ -183,7 +221,17 @@ const resolvers = {
 
 				existingUser.balance -= amount;
 				await existingUser.save();
+				// Create a deposit transaction
+				const withdrawalTransaction = new Transaction({
+					date: new Date().toISOString(),
+					amount,
+					type: "WITHDRAWAL",
+					user: existingUser._id,
+				});
 
+				await withdrawalTransaction.save();
+				existingUser.transactions.push(withdrawalTransaction);
+				await existingUser.save();
 				return existingUser;
 			} catch (error) {
 				throw new Error(`${error.message}`);
@@ -206,15 +254,12 @@ const resolvers = {
 				throw new Error(`Error creating transaction: ${error.message}`);
 			}
 		},
-		async transactions(user) {
+		async transactions(_, { userId }, context) {
 			try {
-				// Fetch transactions for the user from your database
-				const userTransactions = await TransactionModel.find({
-					user: user._id,
-				});
-				return userTransactions;
+				const transactions = await TransactionModel.find({ userId });
+				return transactions;
 			} catch (error) {
-				throw new Error(`Error fetching user transactions: ${error.message}`);
+				throw new Error("Failed to fetch transactions: " + error.message);
 			}
 		},
 	},

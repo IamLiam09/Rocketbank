@@ -65,7 +65,7 @@ function HomePage(props) {
 	const formattedBalance = user ? `₦${user.balance}` : "Loading...";
 	return (
 		<>
-			<div className="container color bg-success px-3 py-2 mt-5 rounded-4">
+			<div className="container color bg-success px-3 py-2 mt-3 mt-md-5 rounded-4 mt-lg-5 mx-auto">
 				<div className="flex-column align-items-start py-3 px-4">
 					<p className="mt-0 mb-0 text-white">
 						Welcome,{" "}

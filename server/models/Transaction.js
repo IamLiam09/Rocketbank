@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const User = require("./User"); // Import the Transaction model
 
 const transactionSchema = new mongoose.Schema({
   date: { type: Date, required: true },
