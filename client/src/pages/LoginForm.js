@@ -55,7 +55,6 @@ function LoginForm({ onLogin }) {
 
 			// Save the token to localStorage
 			localStorage.setItem("authToken", token);
-			console.log("Login:", data.loginUser);
 			onLogin(data.loginUser);
 			history.push("/home", { user: data.loginUser });
 			// Handle successful registration (e.g., redirect to login page)

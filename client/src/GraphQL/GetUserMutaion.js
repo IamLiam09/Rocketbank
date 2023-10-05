@@ -7,6 +7,11 @@ export const GET_USER_DATA_QUERY = gql`
 			phonenumber
 			balance
 			token
+			transactions {
+				amount
+				date
+				type
+			}
 		}
 	}
 `;

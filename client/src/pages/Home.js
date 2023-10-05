@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import deposit from "../Homepageimages/Deposit.png";
 import transfer from "../Homepageimages/transfer.png";
 import withdraw from "../Homepageimages/Withdraw.png";
+import logout from "../Homepageimages/logout.png";
 import { Link, Redirect } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { GET_USER_DATA_QUERY } from "../GraphQL/GetUserMutaion";
+import TransactionHistory from "../Component/Transactionhistory";
 
 function HomePage(props) {
 	const { user } = props.location.state || {};
@@ -16,9 +18,7 @@ function HomePage(props) {
 	const [LoggedUser, setUser] = useState(props.location.state?.user);
 	const [userDataFromServer, setUserDataFromServer] = useState(null);
 	const [phonenumber, setPhonenumber] = useState(null);
-	if (!LoggedUser) {
-		return <p className="text-white">Loading...</p>;
-	}
+	console.log("logged:", LoggedUser);
 
 	const { loading, error, data } = useQuery(GET_USER_DATA_QUERY, {
 		variables: { getUserDataId: LoggedUser.id },
@@ -46,9 +46,6 @@ function HomePage(props) {
 		}
 	}, [user]);
 
-	if (loading) {
-		return <p className="text-white">Loading...</p>;
-	}
 	const handleLogout = () => {
 		// Clear the authentication token from localStorage
 		localStorage.removeItem("authToken");
@@ -126,9 +123,16 @@ function HomePage(props) {
 					</div>
 				</div>
 			</div>
+			<TransactionHistory
+				transactions={
+					userDataFromServer
+						? userDataFromServer.transactions
+						: LoggedUser.transactions
+				}
+			/>
 			<div>
 				<button
-					className="btn hover-btn-danger text-success rounded-pill position-absolute bottom-0 end-0 m-3"
+					className="btn hover-btn-danger text-white bg-success rounded-pill position-fixed bottom-0 end-0 m-3"
 					onClick={handleLogout}
 				>
 					Logout
@@ -137,5 +141,4 @@ function HomePage(props) {
 		</>
 	);
 }
-
 export default HomePage;
