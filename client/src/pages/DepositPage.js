@@ -65,6 +65,13 @@ function DepositForm(props) {
 				setTimeout(() => {
 					history.push("/home", { user: updatedUser });
 				}, 500);
+				if (props.onDepositSuccess) {
+					props.onDepositSuccess({
+					  type: "DEPOSIT",
+					  amount: parseFloat(depositAmount),
+					  date: new Date().toISOString(),
+					});
+				  }
 			} else {
 				setMessage("Deposit failed.");
 			}

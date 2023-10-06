@@ -18,10 +18,16 @@ function HomePage(props) {
 	const [LoggedUser, setUser] = useState(props.location.state?.user);
 	const [userDataFromServer, setUserDataFromServer] = useState(null);
 	const [phonenumber, setPhonenumber] = useState(null);
-	console.log("logged:", LoggedUser);
-
+	const [transactions, setTransactions] = useState([]);
+	const [transactionUpdated, setTransactionUpdated] = useState(false)
+	console.log("trans", transactions)
+	const updateTransactions = (newTransaction) => {
+		// Add the new transaction to the transactions array
+		setTransactions([...transactions, newTransaction]);
+	  };
 	const { loading, error, data } = useQuery(GET_USER_DATA_QUERY, {
 		variables: { getUserDataId: LoggedUser.id },
+		fetchPolicy: 'network-only',
 	});
 	const fetchUserData = async () => {
 		try {
@@ -34,6 +40,9 @@ function HomePage(props) {
 			const userDataFromServer = data.getUserData;
 			// Update the user data in your component's state using setUser
 			setUser(userDataFromServer);
+			setTransactions(userDataFromServer.transactions);
+			console.log("late", userDataFromServer.transactions)
+
 		} catch (error) {
 			console.error("Error fetching user data:", error);
 		}
@@ -60,6 +69,10 @@ function HomePage(props) {
 			? LoggedUser.username.substring(0, 12) + "..."
 			: LoggedUser.username;
 	const formattedBalance = user ? `₦${user.balance}` : "Loading...";
+	const handleDepositSuccess = () => {
+		setTransactionUpdated(!transactionUpdated);
+	  };
+	
 	return (
 		<>
 			<div className="container color bg-success px-3 py-2 mt-3 mt-md-5 rounded-4 mt-lg-5 mx-auto">
@@ -82,6 +95,7 @@ function HomePage(props) {
 								pathname: "/home/deposit",
 								state: { phonenumber: LoggedUser.phonenumber },
 							}}
+							onDepositSuccess={updateTransactions}
 							className="d-flex flex-column align-items-center"
 							style={{ textDecoration: "none" }}
 						>
@@ -123,13 +137,10 @@ function HomePage(props) {
 					</div>
 				</div>
 			</div>
-			<TransactionHistory
-				transactions={
-					userDataFromServer
-						? userDataFromServer.transactions
-						: LoggedUser.transactions
-				}
-			/>
+
+			<TransactionHistory transactions={transactions} 
+			key={transactionUpdated}/>
+
 			<div>
 				<button
 					className="btn hover-btn-danger text-white bg-success rounded-pill position-fixed bottom-0 end-0 m-3"
