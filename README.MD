@@ -1,7 +1,5 @@
 # Bank App
 
-## Name: William Ndubuisi
-
 ####
 
 Banking app built in Mongo, Express, React, and Node.
